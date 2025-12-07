@@ -1,0 +1,17 @@
+{
+  "name": "@ghlabs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/govi2010/ghlabs-nativescript.git"
+  },
+  "keywords": ["NativeScript", "JavaScript", "TypeScript", "iOS", "Android"],
+  "author": {
+    "name": "govinda alwani",
+    "email": "govi2010@gmail.com"
+  },
+  "bugs": {
+    "url": "https://github.com/govi2010/ghlabs-nativescript/issues"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/govi2010/ghlabs-nativescript"
+}

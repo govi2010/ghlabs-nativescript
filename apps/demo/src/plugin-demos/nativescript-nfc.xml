@@ -1,0 +1,16 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" class="page">
+    <Page.actionBar>
+        <ActionBar title="nativescript-nfc" icon="" class="action-bar">
+        </ActionBar>
+    </Page.actionBar>
+    <StackLayout class="p-20">
+        <ScrollView class="h-full">
+          <StackLayout>
+            <Button text="Check NFC Availability" tap="{{ checkAvailability }}" class="btn btn-primary" marginBottom="10"/>
+            <Button text="Start NFC Scan" tap="{{ startScan }}" class="btn btn-primary" marginBottom="10"/>
+            <Button text="Stop NFC Scan" tap="{{ stopScan }}" class="btn btn-primary" marginBottom="10"/>
+            <Label text="{{ statusMessage }}" class="h3 text-center" textWrap="true" marginTop="20"/>
+          </StackLayout>
+        </ScrollView>
+    </StackLayout>
+</Page>

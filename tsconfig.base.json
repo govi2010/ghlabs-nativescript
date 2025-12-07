@@ -20,7 +20,9 @@
       }
     ],
     "paths": {
-      "@demo/shared": ["tools/demo/index.ts"]
+      "@demo/shared": ["tools/demo/index.ts"],
+      "@ghlabs/*": ["packages/*"],
+      "@ghlabs/nativescript-nfc": ["packages/nativescript-nfc/index.d.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

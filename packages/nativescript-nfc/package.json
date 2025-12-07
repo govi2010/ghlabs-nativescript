@@ -1,0 +1,35 @@
+{
+  "name": "@ghlabs/nativescript-nfc",
+  "version": "1.0.0",
+  "description": "Add a plugin description",
+  "main": "index",
+  "types": "index.d.ts",
+  "nativescript": {
+    "platforms": {
+      "ios": "6.0.0",
+      "android": "6.0.0"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/govi2010/ghlabs-nativescript.git"
+  },
+  "keywords": [
+    "NativeScript",
+    "JavaScript",
+    "TypeScript",
+    "iOS",
+    "Android"
+  ],
+  "author": {
+    "name": "govinda alwani",
+    "email": "govi2010@gmail.com"
+  },
+  "bugs": {
+    "url": "https://github.com/govi2010/ghlabs-nativescript/issues"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/govi2010/ghlabs-nativescript",
+  "readmeFilename": "README.md",
+  "bootstrapper": "@nativescript/plugin-seed"
+}

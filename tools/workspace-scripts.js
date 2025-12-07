@@ -37,12 +37,19 @@ module.exports = {
       },
     },
     '⚙️': {
-      script: `npx cowsay "@nativescript/* packages will keep your ⚙️ cranking"`,
-      description: '_____________  @nativescript/*  _____________',
+      script: `npx cowsay "@ghlabs/* packages will keep your ⚙️ cranking"`,
+      description: '_____________  @ghlabs/*  _____________',
     },
     // packages
     // build output is always in dist/packages
-    '@nativescript': {
+    '@ghlabs': {
+      // @ghlabs/nativescript-nfc
+      'nativescript-nfc': {
+        build: {
+          script: 'nx run nativescript-nfc:build.all',
+          description: '@ghlabs/nativescript-nfc: Build',
+        },
+      },
       'build-all': {
         script: 'nx run-many --target=build.all --all',
         description: 'Build all packages',
@@ -53,6 +60,10 @@ module.exports = {
       description: '_____________  Focus (VS Code supported)  _____________',
     },
     focus: {
+      'nativescript-nfc': {
+        script: 'nx run nativescript-nfc:focus',
+        description: 'Focus on @ghlabs/nativescript-nfc',
+      },
       reset: {
         script: 'nx g @nativescript/plugin-tools:focus-packages',
         description: 'Reset Focus',
