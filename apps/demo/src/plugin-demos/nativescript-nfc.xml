@@ -4,13 +4,37 @@
         </ActionBar>
     </Page.actionBar>
     <StackLayout class="p-20">
-        <ScrollView class="h-full">
-          <StackLayout>
-            <Button text="Check NFC Availability" tap="{{ checkAvailability }}" class="btn btn-primary" marginBottom="10"/>
-            <Button text="Start NFC Scan" tap="{{ startScan }}" class="btn btn-primary" marginBottom="10"/>
-            <Button text="Stop NFC Scan" tap="{{ stopScan }}" class="btn btn-primary" marginBottom="10"/>
-            <Label text="{{ statusMessage }}" class="h3 text-center" textWrap="true" marginTop="20"/>
-          </StackLayout>
+        <ScrollView>
+            <StackLayout>
+
+                <Image margin="0" src="~/res/nfc.png" width="60%" horizontalAlignment="center"/>
+
+                <StackLayout orientation="horizontal" width="100%">
+                    <Button text="NFC available?" tap="{{ doCheckAvailable }}" class="button button-a" width="40%"/>
+                    <Button text="NFC enabled?" tap="{{ doCheckEnabled }}" class="button button-a" width="40%"/>
+                </StackLayout>
+
+                <StackLayout orientation="horizontal" width="100%">
+                    <Button text="set ndef listener" tap="{{ doStartNdefListener }}" class="button" width="40%"/>
+                    <Button text="clear ndef listener" tap="{{ doStopNdefListener }}" class="button" width="40%"/>
+                </StackLayout>
+
+<!--                <Android>-->
+                    <StackLayout orientation="horizontal" width="100%">
+                        <Button text="set tag listener" tap="{{ doStartTagListener }}" class="button" width="40%"/>
+                        <Button text="clear tag listner" tap="{{ doStopTagListener }}" class="button" width="40%"/>
+                    </StackLayout>
+
+                    <StackLayout orientation="horizontal" width="100%">
+                        <Button text="write Text" tap="{{ doWriteText }}" class="button button-d" width="40%"/>
+                        <Button text="write Uri" tap="{{ doWriteUri }}" class="button button-d" width="40%"/>
+                    </StackLayout>
+                    <Button text="erase tag" tap="{{ doEraseTag }}" class="button button-c"/>
+<!--                </Android>-->
+
+                <Label text="{{ lastNdefDiscovered }}" class="message message-ndef" textWrap="true"/>
+
+            </StackLayout>
         </ScrollView>
     </StackLayout>
 </Page>
