@@ -1,7 +1,7 @@
 import { NdefListenerOptions, NfcApi, NfcNdefData, NfcNdefRecord, NfcTagData, NfcUriProtocols, WriteTagOptions } from './common';
 
 declare const NFCManager: any;
-
+declare const NSArray: any;
 // NFCResult interface from the Swift bridge
 export interface NFCResult {
   success: boolean;
@@ -16,7 +16,8 @@ export interface NFCResult {
 interface NFCManagerInstance {
   init(): NFCManagerInstance;
   scanWithCallback(callback: (jsonResult: string) => void): void;
-  writeWithUrlCallbackCallback(url: string, callback: (jsonResult: string) => void): void;
+
+  writeWithRecordsCallbackUriRecordsCallback(textRecords: NSArray<any> | null, uriRecords: NSArray<any> | null, callback: (jsonResult: string) => void): void;
   stopSession(): void;
   isAvailable(): boolean;
   getIsSessionActive(): boolean;
@@ -240,26 +241,37 @@ export class Nfc implements NfcApi, NfcSessionInvalidator {
         return;
       }
 
-      // Extract URL from records
-      let urlToWrite: string | null = null;
+      // Validate that we have at least one record type
+      const hasTextRecords = arg.textRecords && arg.textRecords.length > 0;
+      const hasUriRecords = arg.uriRecords && arg.uriRecords.length > 0;
 
-      if (arg.uriRecords && arg.uriRecords.length > 0) {
-        urlToWrite = arg.uriRecords[0].uri;
-      } else if (arg.textRecords && arg.textRecords.length > 0) {
-        // If only text records, we can't write with the current Swift implementation
-        reject('Writing text records not supported. Please provide a URI record.');
+      if (!hasTextRecords && !hasUriRecords) {
+        reject('No records provided. Please provide textRecords or uriRecords.');
         return;
       }
 
-      if (!urlToWrite) {
-        reject('No URI record provided for writing');
-        return;
-      }
-
-      console.log('[Nfc] Writing URL:', urlToWrite);
+      console.log('[Nfc] Writing tag with', hasTextRecords ? `${arg.textRecords.length} text record(s)` : 'no text records', 'and', hasUriRecords ? `${arg.uriRecords.length} URI record(s)` : 'no URI records');
 
       try {
-        this.nativeManager.writeWithUrlCallbackCallback(urlToWrite, (jsonResult: string) => {
+        // Prepare text records as array of dictionaries
+        let textRecordsArray: NSArray<any> | null = null;
+        if (hasTextRecords) {
+          const textRecordDicts = arg.textRecords.map((record) => ({
+            text: record.text,
+            languageCode: record.languageCode || 'en',
+          }));
+          textRecordsArray = NSArray.arrayWithArray(textRecordDicts as any);
+        }
+
+        // Prepare URI records as array of strings
+        let uriRecordsArray: NSArray<any> | null = null;
+        if (hasUriRecords) {
+          const uriStrings = arg.uriRecords.map((record) => record.uri);
+          uriRecordsArray = NSArray.arrayWithArray(uriStrings as any);
+        }
+
+        // Call new unified method
+        this.nativeManager.writeWithRecordsCallbackUriRecordsCallback(textRecordsArray, uriRecordsArray, (jsonResult: string) => {
           try {
             const result: NFCResult = JSON.parse(jsonResult);
 

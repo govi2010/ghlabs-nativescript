@@ -102,6 +102,7 @@ export class DemoModel extends DemoSharedNativescriptNfc {
   }
 
   public doWriteText() {
+    console.log('write tag');
     this.nfc
       .writeTag({
         textRecords: [

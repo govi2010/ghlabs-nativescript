@@ -23,7 +23,8 @@ public class NFCManager: NSObject, NFCNDEFReaderSessionDelegate {
     private var sessionMode: NFCSessionMode = .scan
 
     // Data to write (set from TypeScript)
-    private var writeUrl: String?
+    private var writeTextRecords: [[String: String]]?
+    private var writeUriRecords: [String]?
 
     // Callback to TypeScript - MUST be called in ALL cases
     private var resultCallback: ((String) -> Void)?
@@ -45,20 +46,36 @@ public class NFCManager: NSObject, NFCNDEFReaderSessionDelegate {
         resetState()
 
         self.resultCallback = callback
-        self.writeUrl = nil
+        self.writeTextRecords = nil
+        self.writeUriRecords = nil
         startSession(mode: .scan)
     }
 
-    /// Write URL from TS into tag as well-known URI record
-    /// TS: manager.writeWithUrlCallback(url, (json) => {})
-    @objc public func writeWithUrlCallback(_ url: String, callback: @escaping (String) -> Void) {
-        log("writeWithUrlCallback called, url=\(url)")
+    /// Write multiple text and/or URI records to NFC tag
+    /// TS: manager.writeWithRecordsCallback(textRecords, uriRecords, (json) => {})
+    @objc public func writeWithRecordsCallback(
+        _ textRecords: NSArray?,
+        uriRecords: NSArray?,
+        callback: @escaping (String) -> Void
+    ) {
+        log("writeWithRecordsCallback called, textRecords=\(textRecords?.count ?? 0), uriRecords=\(uriRecords?.count ?? 0)")
 
         // Reset state for new operation
         resetState()
 
         self.resultCallback = callback
-        self.writeUrl = url
+
+        // Convert NSArray to Swift arrays
+        self.writeTextRecords = textRecords?.compactMap { item in
+            guard let dict = item as? NSDictionary else { return nil }
+            var result: [String: String] = [:]
+            result["text"] = dict["text"] as? String ?? ""
+            result["languageCode"] = dict["languageCode"] as? String ?? "en"
+            return result
+        }
+
+        self.writeUriRecords = uriRecords?.compactMap { $0 as? String }
+
         startSession(mode: .write)
     }
 
@@ -516,7 +533,7 @@ public class NFCManager: NSObject, NFCNDEFReaderSessionDelegate {
                             session: session,
                             success: true,
                             message: "Write successful.",
-                            url: writeUrl,
+                            url: writeUriRecords?.first,
                             text: nil,
                             raw: nil,
                             errorCode: nil
@@ -610,24 +627,49 @@ public class NFCManager: NSObject, NFCNDEFReaderSessionDelegate {
     // MARK: - Create NDEF for writing
 
     private func createNdefMessageForWriting() throws -> NFCNDEFMessage {
-        guard let urlString = writeUrl, !urlString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw NFCBridgeError.recordCreation("No URL provided.")
+        var records: [NFCNDEFPayload] = []
+
+        // Add URI records FIRST (per user preference)
+        if let uriRecords = writeUriRecords {
+            for urlString in uriRecords {
+                guard !urlString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    continue
+                }
+
+                guard let url = URL(string: urlString), url.scheme != nil else {
+                    throw NFCBridgeError.invalidUrl("Invalid URL: \(urlString)")
+                }
+
+                guard let urlPayload = NFCNDEFPayload.wellKnownTypeURIPayload(string: url.absoluteString) else {
+                    throw NFCBridgeError.recordCreation("Failed to create URI payload for: \(urlString)")
+                }
+
+                records.append(urlPayload)
+                log("Added URI record: url=\(url.absoluteString)")
+            }
         }
 
-        guard let url = URL(string: urlString), url.scheme != nil else {
-            throw NFCBridgeError.invalidUrl("Invalid URL: \(urlString)")
+        // Add text records SECOND (per user preference)
+        if let textRecords = writeTextRecords {
+            for textRecord in textRecords {
+                if let text = textRecord["text"],
+                   let locale = textRecord["languageCode"],
+                   !text.isEmpty {
+                    if let payload = makeTextPayload(text: text, locale: locale) {
+                        records.append(payload)
+                        log("Added text record: text=\(text), locale=\(locale)")
+                    }
+                }
+            }
         }
 
-        guard let urlPayload = NFCNDEFPayload.wellKnownTypeURIPayload(string: url.absoluteString) else {
-            throw NFCBridgeError.recordCreation("Failed to create URI payload.")
+        // Validate we have at least one record
+        guard !records.isEmpty else {
+            throw NFCBridgeError.recordCreation("No records provided to write.")
         }
 
-        // Optional: add a text record for debugging
-        let text = "Written by NativeScript at \(Date())"
-        let textPayload = makeTextPayload(text: text, locale: "en")
-
-        log("Prepared write message: url=\(url.absoluteString)")
-        return NFCNDEFMessage(records: [urlPayload, textPayload].compactMap { $0 })
+        log("Created NDEF message with \(records.count) record(s)")
+        return NFCNDEFMessage(records: records)
     }
 
     private func makeTextPayload(text: String, locale: String) -> NFCNDEFPayload? {
